@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DW Cloud stream</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <p class="mark">DW Cloud</p>
+      <h1>Camera stream</h1>
+    </div>
+    <p id="session" class="session">Not signed in</p>
+  </header>
+
+  <main>
+    <section class="stage" aria-label="Picture">
+      <div class="well" id="well">
+        <video id="video" playsinline></video>
+        <img id="mjpeg" alt="" hidden>
+        <div id="placeholder" class="placeholder">
+          <p>Sign in, choose a camera, then play.</p>
+          <p class="quiet">The picture is <code>GET /rest/v4/devices/{id}/media</code>. WebM and MP4 use the format path so the browser can decode the stream.</p>
+        </div>
+      </div>
+
+      <div class="transport">
+        <button type="button" id="play" class="primary">Play</button>
+        <button type="button" id="stop">Stop</button>
+        <p id="now" class="now">Idle</p>
+        <button type="button" id="fullscreen" class="ghost">Full screen</button>
+      </div>
+
+      <p id="status" class="status" role="status"></p>
+
+      <label class="url-row">
+        Stream address
+        <span class="url-line">
+          <input id="stream-url" type="text" readonly value="" spellcheck="false">
+          <button type="button" id="copy-url">Copy</button>
+        </span>
+      </label>
+    </section>
+
+    <aside>
+      <form id="connect-form" class="block">
+        <h2>Site</h2>
+        <label>
+          Server
+          <input id="server" type="url" required autocomplete="url" value="https://sitesecuritysystems.net:7001">
+        </label>
+        <label>
+          Username
+          <input id="username" type="text" required autocomplete="username">
+        </label>
+        <label>
+          Password
+          <input id="password" type="password" required autocomplete="current-password">
+        </label>
+        <button type="submit" id="connect" class="primary">Sign in</button>
+      </form>
+
+      <div class="block">
+        <h2>Cameras</h2>
+        <label>
+          Find
+          <input id="filter" type="search" placeholder="Name or id" autocomplete="off">
+        </label>
+        <ul id="cameras" class="cameras" aria-live="polite"></ul>
+        <label>
+          Device id
+          <input id="device-id" type="text" spellcheck="false" placeholder="{camera-id} or MAC">
+        </label>
+      </div>
+
+      <form id="stream-form" class="block">
+        <h2>Stream</h2>
+        <div class="grid">
+          <label>
+            Container
+            <select id="format">
+              <option value="webm" selected>WebM</option>
+              <option value="mp4">MP4</option>
+              <option value="mpjpeg">Motion JPEG</option>
+              <option value="">Server default</option>
+            </select>
+          </label>
+          <label>
+            Stream
+            <select id="stream">
+              <option value="">Auto</option>
+              <option value="secondary" selected>Secondary</option>
+              <option value="primary">Primary</option>
+            </select>
+          </label>
+          <label>
+            Resolution
+            <input id="resolution" type="text" value="720p" placeholder="720p or 1280x720">
+          </label>
+          <label>
+            Quality
+            <select id="quality">
+              <option value="">Unset</option>
+              <option value="lowest">Lowest</option>
+              <option value="low">Low</option>
+              <option value="normal" selected>Normal</option>
+              <option value="high">High</option>
+              <option value="highest">Highest</option>
+              <option value="preset">Preset</option>
+            </select>
+          </label>
+        </div>
+
+        <fieldset>
+          <legend>When</legend>
+          <label class="check">
+            <input id="live" type="checkbox" checked>
+            Live
+          </label>
+          <label>
+            Archive start
+            <input id="position" type="datetime-local" step="1" disabled>
+          </label>
+          <label>
+            Duration, minutes
+            <input id="duration-min" type="number" min="0" step="1" placeholder="Leave empty to keep playing" disabled>
+          </label>
+        </fieldset>
+
+        <details>
+          <summary>Transcoding and export</summary>
+          <div class="grid">
+            <label>
+              Resolution only when transcoding
+              <input id="resolution-when-transcoding" type="text" placeholder="640x360">
+            </label>
+            <label>
+              Rotation
+              <select id="rotation">
+                <option value="">Unset</option>
+                <option value="auto">Auto</option>
+                <option value="0">0</option>
+                <option value="90">90</option>
+                <option value="180">180</option>
+                <option value="270">270</option>
+              </select>
+            </label>
+            <label>
+              Aspect ratio
+              <input id="aspect-ratio" type="text" placeholder="16:9 or auto">
+            </label>
+            <label>
+              Video codec
+              <input id="video-codec" type="text" placeholder="h264">
+            </label>
+            <label>
+              Zoom
+              <input id="zoom" type="text" placeholder="0.2,0.2,0.5x0.5">
+            </label>
+            <label>
+              Drop late frames
+              <input id="drop-late-frames" type="number" step="1" placeholder="Unset">
+            </label>
+            <label>
+              Dewarping pan
+              <input id="dewarping-x" type="number" step="any" placeholder="radians">
+            </label>
+            <label>
+              Dewarping tilt
+              <input id="dewarping-y" type="number" step="any" placeholder="radians">
+            </label>
+            <label>
+              Dewarping field of view
+              <input id="dewarping-fov" type="number" step="any" placeholder="radians">
+            </label>
+            <label>
+              Dewarping panofactor
+              <select id="dewarping-panofactor">
+                <option value="">Unset</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="4">4</option>
+              </select>
+            </label>
+          </div>
+          <div class="checks">
+            <label class="check"><input id="opt-realtime" type="checkbox" checked> Realtime optimization</label>
+            <label class="check"><input id="opt-stand" type="checkbox"> Limit speed to realtime</label>
+            <label class="check"><input id="opt-accurate" type="checkbox"> Accurate seek</label>
+            <label class="check"><input id="opt-audio" type="checkbox"> Audio only</label>
+            <label class="check"><input id="opt-panoramic" type="checkbox"> Panoramic</label>
+            <label class="check"><input id="opt-dewarping" type="checkbox"> Dewarping</label>
+            <label class="check"><input id="opt-signature" type="checkbox"> Signature</label>
+            <label class="check"><input id="opt-utc" type="checkbox"> UTC timestamps</label>
+            <label class="check"><input id="opt-download" type="checkbox"> Download instead of play</label>
+            <label class="check"><input id="opt-local" type="checkbox"> This server only</label>
+            <label class="check"><input id="opt-strict" type="checkbox"> Strict</label>
+          </div>
+        </details>
+      </form>
+    </aside>
+  </main>
+
+  <script src="player.js"></script>
+</body>
+</html>
